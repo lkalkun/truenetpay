@@ -162,15 +162,24 @@
 
                 <!-- Explicitly Visible Pension, Student Loan & Employer NI Options -->
                 <div id="extrasPanel" class="pt-2.5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div>
-                        <label for="pensionBasis" class="block text-[11px] font-semibold text-slate-600 mb-1">Pension Basis</label>
-                        <select id="pensionBasis" class="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]">
-                            <option value="gross" selected>Total Gross Salary (100%)</option>
-                            <option value="qualifying">Qualifying Earnings (£6,240–£50,270)</option>
-                        </select>
+                    <div class="space-y-2">
+                        <div>
+                            <label for="pensionBasis" class="block text-[11px] font-semibold text-slate-600 mb-1">Pension Basis</label>
+                            <select id="pensionBasis" class="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]">
+                                <option value="gross" selected>Total Gross Basis (100%)</option>
+                                <option value="qualifying">Qualifying Earnings (£6,240–£50,270)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="pensionReliefType" class="block text-[11px] font-semibold text-slate-600 mb-1">Payslip Tax Relief Method</label>
+                            <select id="pensionReliefType" class="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]">
+                                <option value="net_pay" selected>Standard UK Payslip (Pre-tax Net Pay)</option>
+                                <option value="relief_at_source">Relief at Source (Post-tax + 20% top-up)</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-2 gap-2 content-start">
                         <div>
                             <label for="empPensionPct" class="block text-[11px] font-semibold text-slate-600 mb-1">Employee %</label>
                             <input type="number" id="empPensionPct" value="5" min="0" max="100" step="0.5" class="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]" />
@@ -179,7 +188,7 @@
                             <label for="erPensionPct" class="block text-[11px] font-semibold text-slate-600 mb-1">Employer %</label>
                             <input type="number" id="erPensionPct" value="3" min="0" max="100" step="0.5" class="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]" />
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-2 pt-1">
                             <label class="inline-flex items-center gap-1.5 cursor-pointer text-[11px] font-semibold text-[#2F5D4E]">
                                 <input type="checkbox" id="pensionSalarySacrifice" class="w-3.5 h-3.5 rounded text-[#2F5D4E] focus:ring-[#2F5D4E]" />
                                 Pension via Salary Sacrifice (saves NI)
@@ -562,7 +571,7 @@
                             4. Workplace Pensions & Student Loans
                         </h3>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Under UK auto-enrolment rules, minimum contributions are typically <strong>5%</strong> from the employee and <strong>3%</strong> from the employer on Qualifying Earnings (£6,240 to £50,270). Student loans are deducted at 9% above the plan threshold (or 6% for Postgraduate loans).
+                            Under UK auto-enrolment rules, minimum contributions are typically <strong>5%</strong> from the employee and <strong>3%</strong> from the employer on Qualifying Earnings (£6,240 to £50,270) or Total Gross Salary. Employee contributions reduce taxable income before tax is calculated. Student loans are deducted at 9% above the plan threshold (or 6% for Postgraduate loans).
                         </p>
                     </div>
 
@@ -845,36 +854,42 @@
 
             if (basePA > 0 && annualGross > yearRules.paTaperStart) {
                 const reduction = Math.floor((annualGross - yearRules.paTaperStart) / 2);
-                basePA = Math.max(0, basePA - reduction);
+                const effectivePA = Math.max(0, basePA - reduction);
+                return { pa: effectivePA, flatRate: null, effectivePA };
             }
-            return { pa: basePA, flatRate: null, effectivePA: basePA };
+
+            return { pa: basePA, flatRate: null, effectivePA: Math.max(0, basePA) };
         }
 
-        // Calculate annual Income Tax using selected tax year bands
-        function calculateIncomeTax(taxableIncome, region, flatRate, yearRules) {
+        // Calculate annual Income Tax using selected tax year bands (supports Relief at Source band extension)
+        function calculateIncomeTax(taxableIncome, region, flatRate, yearRules, rasGrossUp = 0) {
             if (taxableIncome <= 0) return 0;
             if (flatRate !== null) return taxableIncome * flatRate;
 
             if (region === 'scotland') {
-                const bands = yearRules.scotland;
                 let tax = 0, prev = 0;
-                for (const b of bands) {
+                for (let i = 0; i < yearRules.scotland.length; i++) {
+                    const b = yearRules.scotland[i];
+                    // Extend intermediate/higher bands up to top rate boundary for Relief at Source
+                    const effectiveLimit = (b.limit === Infinity || i === 0) ? b.limit : (b.limit + rasGrossUp);
                     if (taxableIncome > prev) {
-                        const slice = Math.min(taxableIncome, b.limit) - prev;
+                        const slice = Math.min(taxableIncome, effectiveLimit) - prev;
                         tax += slice * b.rate;
-                        prev = b.limit;
+                        prev = effectiveLimit;
                     } else break;
                 }
                 return tax;
             } else {
                 const { basicWidth, higherCap, basicRate, higherRate, addRate } = yearRules.rUK;
+                const adjBasicWidth = basicWidth + rasGrossUp;
+                const adjHigherCap = higherCap + rasGrossUp;
                 let tax = 0;
-                if (taxableIncome <= basicWidth) {
+                if (taxableIncome <= adjBasicWidth) {
                     tax = taxableIncome * basicRate;
-                } else if (taxableIncome <= higherCap) {
-                    tax = (basicWidth * basicRate) + ((taxableIncome - basicWidth) * higherRate);
+                } else if (taxableIncome <= adjHigherCap) {
+                    tax = (adjBasicWidth * basicRate) + ((taxableIncome - adjBasicWidth) * higherRate);
                 } else {
-                    tax = (basicWidth * basicRate) + ((higherCap - basicWidth) * higherRate) + ((taxableIncome - higherCap) * addRate);
+                    tax = (adjBasicWidth * basicRate) + ((adjHigherCap - adjBasicWidth) * higherRate) + ((taxableIncome - adjHigherCap) * addRate);
                 }
                 return tax;
             }
@@ -1025,7 +1040,7 @@
         // Core annual calculation helper (used for base salary and base + bonus marginal comparison)
         function computeAnnualPayPackage(totalAnnualGross, params, yearRules) {
             const {
-                taxRegion, taxCode, pensionBasis, empPensionPct, erPensionPct,
+                taxRegion, taxCode, pensionBasis, pensionReliefType, empPensionPct, erPensionPct,
                 isPensionSacrifice, extraSacrifice, studentLoanPlan, hasPostgrad, employerNiType
             } = params;
 
@@ -1045,14 +1060,25 @@
             // Contractual pay after salary sacrifice (used for NI, Student Loans & Employer NI)
             const postSacrificeGross = Math.max(0, totalAnnualGross - totalSacrificed);
 
-            // Taxable pay (if pension is NOT salary sacrifice, Net Pay relief still deducts empPension from taxable pay)
-            const taxableGross = isPensionSacrifice
+            // Determine Relief at Source gross-up vs Net Pay pre-tax deduction
+            const isRAS = !isPensionSacrifice && pensionReliefType === 'relief_at_source';
+            const rasGrossUp = isRAS ? (empPension / 0.8) : 0;
+
+            // Under Relief at Source, PAYE taxable gross is postSacrificeGross, bands extend by rasGrossUp,
+            // and Adjusted Net Income (postSacrificeGross - rasGrossUp) governs the £100k PA taper.
+            const taxableGross = (isPensionSacrifice || isRAS)
                 ? postSacrificeGross
                 : Math.max(0, postSacrificeGross - empPension);
+            const adjustedNetIncome = isRAS
+                ? Math.max(0, postSacrificeGross - rasGrossUp)
+                : taxableGross;
 
-            const { pa, flatRate, effectivePA } = parsePersonalAllowance(taxCode, taxableGross, yearRules);
+            const { pa, flatRate, effectivePA } = parsePersonalAllowance(taxCode, adjustedNetIncome, yearRules);
             const taxableIncome = Math.max(0, taxableGross - pa);
-            const incomeTax = calculateIncomeTax(taxableIncome, taxRegion, flatRate, yearRules);
+            const grossTax = calculateIncomeTax(taxableIncome, taxRegion, flatRate, yearRules, rasGrossUp);
+            // Under Relief at Source, HMRC's higher/additional rate relief reduces tax by 20% of the grossed-up contribution
+            // in addition to the band extension, matching GOV.UK's exact Income Tax estimate
+            const incomeTax = isRAS ? Math.max(0, grossTax - (rasGrossUp * 0.20)) : grossTax;
 
             const empNI = calculateEmployeeNI(postSacrificeGross, yearRules);
 
@@ -1107,6 +1133,7 @@
                 taxRegion: document.getElementById('taxRegion').value,
                 taxCode: document.getElementById('taxCode').value,
                 pensionBasis: document.getElementById('pensionBasis').value,
+                pensionReliefType: document.getElementById('pensionReliefType').value,
                 empPensionPct: Math.max(0, parseFloat(document.getElementById('empPensionPct').value) || 0) / 100,
                 erPensionPct: Math.max(0, parseFloat(document.getElementById('erPensionPct').value) || 0) / 100,
                 isPensionSacrifice: document.getElementById('pensionSalarySacrifice').checked,
@@ -1378,7 +1405,7 @@
         });
 
         // Listeners for tax/pension controls
-        ['taxRegion', 'taxCode', 'pensionBasis', 'empPensionPct', 'erPensionPct', 'pensionSalarySacrifice', 'studentLoan', 'postgradLoan', 'employerNiType'].forEach(id => {
+        ['taxRegion', 'taxCode', 'pensionBasis', 'pensionReliefType', 'empPensionPct', 'erPensionPct', 'pensionSalarySacrifice', 'studentLoan', 'postgradLoan', 'employerNiType'].forEach(id => {
             document.getElementById(id).addEventListener('input', recalculateAll);
             document.getElementById(id).addEventListener('change', recalculateAll);
         });
