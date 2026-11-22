@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Net Pay & Employer Cost (2026/27 HMRC)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            min-height: 100%;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        #appScrollWrapper {
+            min-height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-[#F6F8F7] text-slate-800 antialiased selection:bg-teal-100 selection:text-teal-900">
+<div id="appScrollWrapper">
+
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-[#2F5D4E] flex items-center justify-center text-white shadow-xs">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-sm sm:text-base tracking-tight text-slate-900">UK Net Pay & Employer Cost</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="headerTaxYearBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    2026/27 HMRC Rates
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 py-3.5 sm:py-4 space-y-3.5">
+
+        <!-- TOP FULL-WIDTH BAR: Weekly, Monthly & Yearly Gross Alongside Each Other -->
+        <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+                <div>
+                    <h2 class="font-display font-bold text-base text-slate-900">Let's work it out</h2>
+                    <p class="text-[11px] text-slate-500">Enter a salary in any box below — the other two periods calculate automatically</p>
+                </div>
+                <!-- Quick Salary Presets & Clear -->
+                <div class="flex flex-wrap items-center gap-1">
+                    <span class="text-[11px] font-medium text-slate-400 mr-1">Yearly presets:</span>
+                    <button type="button" data-preset="28000" class="preset-btn px-2 py-0.5 text-[11px] font-medium rounded-md bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">£28k</button>
+                    <button type="button" data-preset="45000" class="preset-btn px-2 py-0.5 text-[11px] font-medium rounded-md bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">£45k</button>
+                    <button type="button" data-preset="65000" class="preset-btn px-2 py-0.5 text-[11px] font-medium rounded-md bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">£65k</button>
+                    <button type="button" data-preset="95000" class="preset-btn px-2 py-0.5 text-[11px] font-medium rounded-md bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition">£95k</button>
+                    <button type="button" id="clearAllBtn" class="px-2 py-0.5 text-[11px] font-medium rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 transition ml-0.5">Clear</button>
+                </div>
+            </div>
+
+            <!-- 3-Column Horizontal Grid for Weekly, Monthly & Yearly Gross -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <!-- Weekly Gross Box -->
+                <div id="box-weekly" class="salary-box-card relative p-2.5 sm:p-3 rounded-xl border border-slate-200 bg-slate-50/50 transition-all">
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="inputWeekly" class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Weekly Gross</label>
+                        <span id="badge-weekly" class="hidden text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2F5D4E] text-white">Active</span>
+                    </div>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3 text-slate-400 font-semibold text-base select-none">£</span>
+                        <input type="text" inputmode="decimal" id="inputWeekly" placeholder="e.g. 865.38"
+                            class="w-full pl-7 pr-11 py-2 text-base sm:text-lg font-bold text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E] focus:ring-2 focus:ring-[#2F5D4E]/15 transition" />
+                        <span class="absolute right-2.5 text-[11px] font-medium text-slate-400 select-none">/ wk</span>
+                    </div>
+                </div>
+
+                <!-- Monthly Gross Box -->
+                <div id="box-monthly" class="salary-box-card relative p-2.5 sm:p-3 rounded-xl border border-slate-200 bg-slate-50/50 transition-all">
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="inputMonthly" class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Monthly Gross</label>
+                        <span id="badge-monthly" class="hidden text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2F5D4E] text-white">Active</span>
+                    </div>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3 text-slate-400 font-semibold text-base select-none">£</span>
+                        <input type="text" inputmode="decimal" id="inputMonthly" placeholder="e.g. 3,750.00"
+                            class="w-full pl-7 pr-11 py-2 text-base sm:text-lg font-bold text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E] focus:ring-2 focus:ring-[#2F5D4E]/15 transition" />
+                        <span class="absolute right-2.5 text-[11px] font-medium text-slate-400 select-none">/ mo</span>
+                    </div>
+                </div>
+
+                <!-- Yearly Gross Box (Starts Blank) -->
+                <div id="box-yearly" class="salary-box-card relative p-2.5 sm:p-3 rounded-xl border-2 border-[#2F5D4E] bg-emerald-50/30 transition-all">
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="inputYearly" class="text-[11px] font-bold uppercase tracking-wider text-[#2F5D4E]">Yearly Gross</label>
+                        <span id="badge-yearly" class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#2F5D4E] text-white">Active</span>
+                    </div>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3 text-slate-400 font-semibold text-base select-none">£</span>
+                        <input type="text" inputmode="decimal" id="inputYearly" value="" placeholder="e.g. 45,000"
+                            class="w-full pl-7 pr-11 py-2 text-base sm:text-lg font-bold text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E] focus:ring-2 focus:ring-[#2F5D4E]/15 transition" />
+                        <span class="absolute right-2.5 text-[11px] font-medium text-slate-400 select-none">/ yr</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parameter Selectors Row Placed Beneath Weekly / Monthly / Yearly Boxes -->
+            <div class="pt-2.5 border-t border-slate-100 space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-stretch">
+                    <div class="sm:col-span-3 p-2.5 rounded-xl bg-emerald-50/60 border-2 border-[#2F5D4E]/40 shadow-2xs">
+                        <label for="taxYear" class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#2F5D4E] mb-1">
+                            <span>Tax Year</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#2F5D4E]"></span>
+                        </label>
+                        <select id="taxYear" class="w-full px-2.5 py-2 text-sm font-bold text-slate-900 bg-white border border-[#2F5D4E]/30 rounded-lg focus:outline-none focus:border-[#2F5D4E] focus:ring-2 focus:ring-[#2F5D4E]/15 transition">
+                            <option value="2026-27" selected>2026/27</option>
+                            <option value="2025-26">2025/26</option>
+                            <option value="2024-25">2024/25</option>
+                            <option value="2023-24">2023/24</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-6 p-2.5 rounded-xl bg-slate-50/70 border border-slate-200/90 flex flex-col justify-between">
+                        <label for="taxRegion" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Tax Region</label>
+                        <select id="taxRegion" class="w-full px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E] focus:ring-2 focus:ring-[#2F5D4E]/15 transition">
+                            <option value="rUK">England, Wales or N. Ireland</option>
+                            <option value="scotland">Scotland</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-3 p-2.5 rounded-xl bg-emerald-50/60 border-2 border-[#2F5D4E]/40 shadow-2xs">
+                        <label for="taxCode" class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#2F5D4E] mb-1">
+                            <span>Tax Code</span>
+                            <span class="text-[9px] font-semibold normal-case tracking-normal text-[#2F5D4E]/80">HMRC</span>
+                        </label>
+                        <input type="text" id="taxCode" value="1257L" maxlength="8" class="w-full px-2.5 py-2 text-sm font-extrabold uppercase tracking-wide text-slate-900 bg-white border border-[#2F5D4E]/30 rounded-lg focus:outline-none focus:border-[#2F5D4E] focus:ring-2 focus:ring-[#2F5D4E]/15 transition" />
+                    </div>
+                </div>
+
+                <!-- Explicitly Visible Pension, Student Loan & Employer NI Options -->
+                <div id="extrasPanel" class="pt-2.5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                        <label for="pensionBasis" class="block text-[11px] font-semibold text-slate-600 mb-1">Pension Basis</label>
+                        <select id="pensionBasis" class="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]">
+                            <option value="gross" selected>Total Gross Salary (100%)</option>
+                            <option value="qualifying">Qualifying Earnings (£6,240–£50,270)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label for="empPensionPct" class="block text-[11px] font-semibold text-slate-600 mb-1">Employee %</label>
+                            <input type="number" id="empPensionPct" value="5" min="0" max="100" step="0.5" class="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]" />
+                        </div>
+                        <div>
+                            <label for="erPensionPct" class="block text-[11px] font-semibold text-slate-600 mb-1">Employer %</label>
+                            <input type="number" id="erPensionPct" value="3" min="0" max="100" step="0.5" class="w-full px-2.5 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]" />
+                        </div>
+                        <div class="col-span-2">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-[11px] font-semibold text-[#2F5D4E]">
+                                <input type="checkbox" id="pensionSalarySacrifice" class="w-3.5 h-3.5 rounded text-[#2F5D4E] focus:ring-[#2F5D4E]" />
+                                Pension via Salary Sacrifice (saves NI)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="studentLoan" class="block text-[11px] font-semibold text-slate-600 mb-1">Student Loan Plan</label>
+                        <select id="studentLoan" class="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]">
+                            <option value="none">None</option>
+                            <option value="plan1">Plan 1 (£26,900)</option>
+                            <option value="plan2">Plan 2 (£29,385)</option>
+                            <option value="plan4">Plan 4 Scotland (£33,795)</option>
+                            <option value="plan5">Plan 5 (£25,000)</option>
+                        </select>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-[11px] font-medium text-slate-700 mt-1.5">
+                            <input type="checkbox" id="postgradLoan" class="w-3.5 h-3.5 rounded text-[#2F5D4E] focus:ring-[#2F5D4E]" />
+                            Postgraduate Loan (£21,000)
+                        </label>
+                    </div>
+
+                    <div>
+                        <label id="employerNiRuleLabel" for="employerNiType" class="block text-[11px] font-semibold text-slate-600 mb-1">Employer NI Rule (2026/27)</label>
+                        <select id="employerNiType" class="w-full px-2.5 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]">
+                            <option value="standard">Standard (15% above £5,000/yr)</option>
+                            <option value="young_vet">Under 21 / Apprentice / Veteran (0% to £50,270)</option>
+                            <option value="emp_allowance">Covered by £10,500 Employment Allowance (£0 NI)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Salary Sacrifice (Other Benefits) & Annual Bonus Row -->
+                <div class="pt-2.5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80">
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="inputExtraSacrifice" class="text-[11px] font-bold text-slate-700">Other Salary Sacrifice (EV / Cycle / Childcare)</label>
+                            <span class="text-[10px] font-semibold text-[#2F5D4E]">Yearly £</span>
+                        </div>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-2.5 text-slate-400 font-semibold text-xs select-none">£</span>
+                            <input type="text" inputmode="decimal" id="inputExtraSacrifice" placeholder="e.g. 4,800"
+                                class="w-full pl-6 pr-11 py-1.5 text-xs font-bold text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E] focus:ring-2 focus:ring-[#2F5D4E]/15 transition" />
+                            <span class="absolute right-2.5 text-[10px] font-medium text-slate-400 select-none">/ yr</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Reduces taxable & NI-able pay (saves Income Tax, Employee NI, Student Loan & Employer NI).</p>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl bg-amber-50/40 border border-amber-200/70">
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="inputBonus" class="text-[11px] font-bold text-slate-800">Annual Bonus Calculator</label>
+                            <span class="text-[10px] font-semibold text-amber-800">One-off / Yearly £</span>
+                        </div>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-2.5 text-slate-400 font-semibold text-xs select-none">£</span>
+                            <input type="text" inputmode="decimal" id="inputBonus" placeholder="e.g. 5,000"
+                                class="w-full pl-6 pr-11 py-1.5 text-xs font-bold text-slate-900 bg-white border border-amber-200 rounded-lg focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/15 transition" />
+                            <span class="absolute right-2.5 text-[10px] font-medium text-slate-400 select-none">/ yr</span>
+                        </div>
+                        <p class="text-[10px] text-slate-600 mt-1">Calculates exact marginal tax, NI & net bonus take-home on top of your base salary.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM FULL-WIDTH RESULTS: Take-Home Pay & Employer Cost Side-by-Side -->
+        <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3.5">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="font-display font-bold text-base text-slate-900">Your estimate</h2>
+                        <span id="resultsTaxYearPill" class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-emerald-50 text-[#2F5D4E] border border-emerald-200">2026/27 Tax Year</span>
+                    </div>
+                    <p id="resultsYearSummary" class="text-[11px] text-slate-500 mt-0.5">Calculated using 2026/27 HMRC rules · Default Personal Allowance £12,570 (1257L)</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 border-2 border-slate-400 divide-x-2 divide-slate-400 overflow-hidden self-start shadow-xs">
+                    <button type="button" data-view="weekly" class="view-tab px-3.5 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition">Weekly</button>
+                    <button type="button" data-view="monthly" class="view-tab px-3.5 py-1.5 text-xs font-bold bg-white text-slate-900 shadow-xs transition">Monthly</button>
+                    <button type="button" data-view="yearly" class="view-tab px-3.5 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition">Yearly</button>
+                </div>
+            </div>
+
+            <!-- Hero Banner Card (Take-Home Pay) -->
+            <div class="relative overflow-hidden rounded-xl bg-[#345E50] text-white p-4 sm:p-5 mb-4">
+                <div class="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-white/5 pointer-events-none"></div>
+                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <p class="text-[11px] font-medium text-emerald-100/90 uppercase tracking-wider">Estimated take-home pay</p>
+                        <div id="heroTakeHome" class="font-display font-extrabold text-2xl sm:text-4xl tracking-tight mt-0.5">£0.00</div>
+                        <p id="heroPeriodLabel" class="text-[11px] text-emerald-100/80 mt-0.5">per month, after deductions</p>
+                    </div>
+                    <div class="bg-black/15 backdrop-blur-xs rounded-lg px-3.5 py-2.5 border border-white/10">
+                        <p class="text-[10px] text-emerald-100/80 uppercase tracking-wider">Total Employer Cost</p>
+                        <p id="heroEmployerCost" class="font-display font-bold text-lg sm:text-xl text-white mt-0.5">£0.00</p>
+                        <p id="heroMarkupLabel" class="text-[11px] text-emerald-200/90">+0.0% above gross salary</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Breakdown Cards: Employee Net Pay vs Employer Cost -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- CARD 1: Employee Deductions & Take-Home Pay (Thicker Border) -->
+                <div class="rounded-xl border-2 border-slate-400 bg-slate-50/40 p-4 flex flex-col justify-between shadow-xs">
+                    <div>
+                        <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200/80">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600">From Your Gross Pay</span>
+                            <span id="cardPeriodBadge1" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-200/80 text-slate-700">Monthly</span>
+                        </div>
+
+                        <div class="space-y-1.5 text-xs sm:text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600">Gross pay</span>
+                                <span id="resGrossPay" class="font-semibold text-slate-900">£0.00</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600">Income tax</span>
+                                <span id="resIncomeTax" class="font-medium text-rose-600">− £0.00</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600">Employee National Insurance</span>
+                                <span id="resEmpNI" class="font-medium text-rose-600">− £0.00</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600">Your pension</span>
+                                <span id="resEmpPension" class="font-medium text-rose-600">− £0.00</span>
+                            </div>
+                            <div id="rowExtraSacrifice" class="hidden flex items-center justify-between">
+                                <span class="text-slate-600">Other salary sacrifice</span>
+                                <span id="resExtraSacrifice" class="font-medium text-rose-600">− £0.00</span>
+                            </div>
+                            <div id="rowStudentLoan" class="hidden flex items-center justify-between">
+                                <span class="text-slate-600">Student / PG loan</span>
+                                <span id="resStudentLoan" class="font-medium text-rose-600">− £0.00</span>
+                            </div>
+                        </div>
+                        <div id="niSavingsBadge" class="hidden mt-2 px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] font-medium text-emerald-900">
+                            Salary sacrifice saves you <strong id="empNiSavedVal">£0.00</strong>/yr in Employee NI & Student Loan, and saves your employer <strong id="erNiSavedVal">£0.00</strong>/yr in Employer NI.
+                        </div>
+                    </div>
+
+                    <!-- Deductions Sub-Total + Net Take-Home Pay -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between text-xs font-semibold bg-rose-50/80 text-rose-800 px-2.5 py-1.5 rounded-lg border border-rose-100">
+                            <span>Total deductions</span>
+                            <span id="resTotalDeductions">− £0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-0.5">
+                            <span class="font-display font-bold text-sm sm:text-base text-slate-900">Take-home pay</span>
+                            <span id="resNetPay" class="font-display font-extrabold text-base sm:text-lg text-[#2F5D4E]">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: Employer Cost Breakdown (Thicker Border) -->
+                <div class="rounded-xl border-2 border-slate-400 bg-white p-4 flex flex-col justify-between shadow-xs">
+                    <div>
+                        <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200/80">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Employer Cost Breakdown</span>
+                            <span id="cardPeriodBadge2" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800">Monthly</span>
+                        </div>
+
+                        <div class="space-y-1.5 text-xs sm:text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600">Gross salary</span>
+                                <span id="erGrossPay" class="font-semibold text-slate-900">£0.00</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-slate-600 block">Employer National Insurance</span>
+                                    <span id="erNiRateNote" class="text-[10px] text-slate-400">15% above applicable threshold</span>
+                                </div>
+                                <span id="erNI" class="font-medium text-amber-700">+ £0.00</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-slate-600 block">Employer pension</span>
+                                    <span id="erPensionRateNote" class="text-[10px] text-slate-400">3% qualifying earnings</span>
+                                </div>
+                                <span id="erPension" class="font-medium text-amber-700">+ £0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employer Overhead Sub-Total + Total Employer Cost -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between text-xs font-semibold bg-amber-50/80 text-amber-900 px-2.5 py-1.5 rounded-lg border border-amber-100">
+                            <span>Employer on-costs</span>
+                            <span id="erTotalOnCosts">+ £0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-0.5">
+                            <span class="font-display font-bold text-sm sm:text-base text-slate-900">Total employer cost</span>
+                            <span id="erTotalCost" class="font-display font-extrabold text-base sm:text-lg text-slate-900">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- DEDICATED BONUS BREAKDOWN CARD (Shown automatically when a Bonus > £0 is entered) -->
+            <div id="bonusBreakdownSection" class="hidden mt-4 rounded-xl border-2 border-amber-400/90 bg-amber-50/35 p-4 shadow-xs">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-2.5 mb-3 border-b border-amber-200/80">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider">Bonus Breakdown</span>
+                        <h3 class="font-display font-bold text-sm text-slate-900">Marginal Impact of Your Annual Bonus</h3>
+                    </div>
+                    <span id="bonusEffectiveKeepBadge" class="text-xs font-bold text-[#2F5D4E]">You keep 0.0% of your bonus</span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+                    <div class="p-2.5 rounded-lg bg-white border border-amber-200/70">
+                        <span class="text-[10px] font-semibold uppercase text-slate-400 block">Gross Bonus</span>
+                        <span id="bonGross" class="font-display font-bold text-sm text-slate-900 mt-0.5 block">£0.00</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-white border border-amber-200/70">
+                        <span class="text-[10px] font-semibold uppercase text-slate-400 block">Extra Income Tax</span>
+                        <span id="bonTax" class="font-bold text-sm text-rose-600 mt-0.5 block">− £0.00</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-white border border-amber-200/70">
+                        <span class="text-[10px] font-semibold uppercase text-slate-400 block">Extra NI & Loan</span>
+                        <span id="bonNiLoan" class="font-bold text-sm text-rose-600 mt-0.5 block">− £0.00</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
+                        <span class="text-[10px] font-bold uppercase text-[#2F5D4E] block">Net Bonus Take-Home</span>
+                        <span id="bonNet" class="font-display font-extrabold text-sm text-[#2F5D4E] mt-0.5 block">£0.00</span>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1 p-2.5 rounded-lg bg-white border border-amber-200/70">
+                        <span class="text-[10px] font-semibold uppercase text-slate-400 block">Extra Employer Cost</span>
+                        <span id="bonErCost" class="font-bold text-sm text-amber-800 mt-0.5 block">£0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-Period Comparison Table -->
+            <div class="mt-4 pt-3.5 border-t border-slate-100">
+                <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">All Periods At A Glance</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-500">
+                                <th class="py-1.5 font-semibold">Summary Line</th>
+                                <th class="py-1.5 font-semibold text-right">Weekly</th>
+                                <th class="py-1.5 font-semibold text-right">Monthly</th>
+                                <th class="py-1.5 font-semibold text-right">Yearly</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="py-1.5 text-slate-600">Gross Salary</td>
+                                <td id="tblGrossW" class="py-1.5 text-right font-medium text-slate-800">£0.00</td>
+                                <td id="tblGrossM" class="py-1.5 text-right font-medium text-slate-800">£0.00</td>
+                                <td id="tblGrossY" class="py-1.5 text-right font-medium text-slate-800">£0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="py-1.5 text-rose-700 font-medium">Total Deductions</td>
+                                <td id="tblDedW" class="py-1.5 text-right text-rose-600">− £0.00</td>
+                                <td id="tblDedM" class="py-1.5 text-right text-rose-600">− £0.00</td>
+                                <td id="tblDedY" class="py-1.5 text-right text-rose-600">− £0.00</td>
+                            </tr>
+                            <tr class="bg-emerald-50/50 font-bold text-[#2F5D4E]">
+                                <td class="py-1.5 pl-2 rounded-l-md">Take-Home Net Pay</td>
+                                <td id="tblNetW" class="py-1.5 text-right">£0.00</td>
+                                <td id="tblNetM" class="py-1.5 text-right">£0.00</td>
+                                <td id="tblNetY" class="py-1.5 pr-2 text-right rounded-r-md">£0.00</td>
+                            </tr>
+                            <tr class="font-bold text-slate-900">
+                                <td class="py-1.5 pl-2">Total Employer Cost</td>
+                                <td id="tblErW" class="py-1.5 text-right">£0.00</td>
+                                <td id="tblErM" class="py-1.5 text-right">£0.00</td>
+                                <td id="tblErY" class="py-1.5 pr-2 text-right">£0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reverse Calculator Table: Target Take-Home Pay -> Required Gross Salary -->
+            <div class="mt-5 pt-4 border-t border-slate-200/80">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2F5D4E]">
+                            <i data-lucide="target" class="w-3.5 h-3.5"></i>
+                            Reverse Salary Lookup
+                        </span>
+                        <h3 class="font-display font-bold text-sm text-slate-900">Gross Yearly Salary Needed for Target Take-Home Pay</h3>
+                        <p class="text-[11px] text-slate-500">Automatically adjusted for your active tax year, region, tax code, pension, sacrifice &amp; student loan settings</p>
+                    </div>
+                    <!-- Custom Target Take-Home Input -->
+                    <div class="flex flex-wrap items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200/90">
+                        <span class="text-[11px] font-semibold text-slate-600 pl-1">Custom target:</span>
+                        <div class="relative flex items-center w-28">
+                            <span class="absolute left-2 text-slate-400 font-semibold text-xs select-none">£</span>
+                            <input type="text" inputmode="decimal" id="customTargetNetInput" placeholder="e.g. 3,200"
+                                class="w-full pl-5 pr-2 py-1 text-xs font-bold text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]" />
+                        </div>
+                        <select id="customTargetNetPeriod" class="px-2 py-1 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2F5D4E]">
+                            <option value="monthly" selected>/ month</option>
+                            <option value="weekly">/ week</option>
+                            <option value="yearly">/ year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-200/90">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600">
+                                <th class="py-2 pl-3 font-semibold">Target Net (Weekly)</th>
+                                <th class="py-2 font-semibold">Target Net (Monthly)</th>
+                                <th class="py-2 font-semibold">Target Net (Yearly)</th>
+                                <th class="py-2 font-bold text-[#2F5D4E] text-right">Required Gross / Yr</th>
+                                <th class="py-2 font-semibold text-slate-700 text-right">Employer Cost / Yr</th>
+                                <th class="py-2 pr-3 font-semibold text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="targetNetTableBody" class="divide-y divide-slate-100 bg-white">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-relaxed mt-2 bg-slate-50/90 border border-slate-200/70 rounded-lg px-3 py-2">
+                    <strong class="text-slate-700">How the reverse lookup works:</strong> Because UK income tax bands, National Insurance thresholds, the £100,000 Personal Allowance taper, pension qualifying earnings bands, and student loan repayments are non-linear, working backwards from take-home pay cannot be done with a single flat percentage. Instead, the calculator runs a sub-penny precision solver against your exact chosen tax year, region, tax code, pension, salary sacrifice, and student loan settings to find the precise gross annual salary that leaves your target net pay after all deductions.
+                </p>
+            </div>
+
+            <p id="resultsFooterDisclaimer" class="text-[11px] text-slate-400 leading-relaxed mt-3.5 pt-2.5 border-t border-slate-100">
+                Figures are estimates based on a standard PAYE employee and 2026/27 HMRC tax & National Insurance thresholds (52 weeks / 12 months per year).
+            </p>
+        </section>
+
+        <!-- EDUCATIONAL EXPLANATION NOTES, HMRC CONTACTS & LEGAL DISCLAIMER (ADSENSE-READY CONTENT) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <!-- How Your Pay & Employer Cost Are Calculated (2 columns on desktop) -->
+            <div class="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#2F5D4E] mb-1">
+                        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                        Guide & Methodology
+                    </span>
+                    <h2 class="font-display font-bold text-xl text-slate-900">How UK Take-Home Pay & Employer Costs Are Calculated (2026/27)</h2>
+                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                        Understanding the difference between your gross salary, net take-home pay, and the true cost to an employer helps both employees planning personal budgets and businesses forecasting payroll commitments.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+                        <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#2F5D4E]"></span>
+                            1. Personal Allowance & Income Tax
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Most UK taxpayers receive a standard tax-free Personal Allowance of <strong>£12,570</strong> (tax code <code class="bg-slate-200/70 px-1 rounded">1257L</code>). In England, Wales, and Northern Ireland, earnings above this are taxed at <strong>20%</strong> (Basic rate up to £50,270), <strong>40%</strong> (Higher rate up to £125,140), and <strong>45%</strong> (Additional rate). Scotland applies separate 6-band rates starting at 19%. For incomes over £100,000, the Personal Allowance tapers by £1 for every £2 earned.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+                        <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#2F5D4E]"></span>
+                            2. Employee National Insurance (Class 1)
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Employees pay Class 1 National Insurance at <strong>8%</strong> on earnings between £12,570 and £50,270 per year (£242 to £967 per week), and <strong>2%</strong> on all earnings above £50,270. Employees over State Pension age are exempt from paying Class 1 NI.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+                        <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                            3. Employer National Insurance (15% Rate)
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            In addition to gross salary, employers pay Secondary Class 1 National Insurance at <strong>15%</strong> on employee earnings above the <strong>£5,000</strong> annual Secondary Threshold (£96/week). Reliefs apply for apprentices under 25, employees under 21, and armed forces veterans up to £50,270, while eligible businesses can claim the £10,500 Employment Allowance.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+                        <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                            4. Workplace Pensions & Student Loans
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Under UK auto-enrolment rules, minimum contributions are typically <strong>5%</strong> from the employee and <strong>3%</strong> from the employer on Qualifying Earnings (£6,240 to £50,270). Student loans are deducted at 9% above the plan threshold (or 6% for Postgraduate loans).
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+                        <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#2F5D4E]"></span>
+                            5. Salary Sacrifice & £30,000 Worked Example
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            <strong>Salary sacrifice</strong> is an agreement where you give up part of your contractual gross salary in exchange for a non-cash benefit (such as workplace pension contributions, an EV car scheme, or Cycle to Work). Because your contractual pay is lower before tax and National Insurance are calculated, you save <strong>both</strong> Income Tax and Employee NI (plus Student Loan repayments), while your employer saves <strong>15% Employer NI</strong>.
+                        </p>
+                        <p class="text-xs text-slate-600 leading-relaxed pt-1">
+                            <strong>Effect on a £30,000 salary:</strong> At £30,000/yr, you pay 20% Basic Rate tax and 8% Employee NI (28% combined). If you sacrifice <strong>£1,500/yr</strong> (5%) into a pension instead of a standard relief-at-source scheme, you save an extra <strong>£120/yr</strong> in Employee NI (8% × £1,500)—meaning £1,500 goes into your pension pot while reducing your take-home pay by only <strong>£1,080/yr</strong> (£90/month), and saving your employer <strong>£225/yr</strong> in Employer NI.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+                        <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                            6. How Bonus Payments Are Taxed
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Annual or one-off bonuses are taxed through PAYE on top of your regular salary at your <strong>marginal rate</strong>—not a separate "bonus tax." For example, if your regular salary is £45,000 and you receive a £5,000 bonus, it falls within the Basic Rate band (20% Income Tax + 8% Employee NI = <strong>28% deductions</strong>, so you keep 72%).
+                        </p>
+                        <p class="text-xs text-slate-600 leading-relaxed pt-1">
+                            However, if a bonus pushes your total annual income above <strong>£50,270</strong>, the slice above £50,270 is taxed at <strong>40% Income Tax + 2% NI</strong> (42% combined). If a bonus pushes your income between <strong>£100,000 and £125,140</strong>, the £1-for-£2 Personal Allowance taper creates an effective marginal tax and NI rate of <strong>62%</strong> (or 69.5% in Scotland).
+                        </p>
+                    </div>
+
+                    <div class="sm:col-span-2 p-4 rounded-2xl bg-slate-50/80 border border-slate-200/70 space-y-1.5">
+                        <h3 class="font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#2F5D4E]"></span>
+                            7. How the Reverse Salary Lookup Is Calculated
+                        </h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            When negotiating a job offer or budgeting around a fixed monthly take-home goal, you often know the <strong>net pay</strong> you need rather than the gross salary to ask for. Because UK PAYE deductions step up across multiple thresholds—such as the £12,570 Personal Allowance, the £50,270 Higher Rate boundary, student loan thresholds, and the £100,000–£125,140 Personal Allowance taper—there is no single formula that reverses net pay in one step.
+                        </p>
+                        <p class="text-xs text-slate-600 leading-relaxed pt-1">
+                            Our <strong>Reverse Salary Lookup</strong> uses an iterative numerical solver (50-step binary search) over the full HMRC PAYE engine using your currently selected tax year, region, tax code, pension percentage, salary sacrifice, and student loan plan. It tests candidate gross salaries until the resulting take-home pay matches your target to within a fraction of a penny, and also shows the total <strong>Employer Cost / Yr</strong> required to fund that net salary.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LEGAL DISCLAIMER & PRIVACY NOTICE FOOTER -->
+        <footer class="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80 text-xs text-slate-500 space-y-3">
+            <div class="flex items-center gap-2 text-slate-800 font-display font-bold text-sm">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600"></i>
+                Important Legal & Financial Disclaimer
+            </div>
+            <p class="leading-relaxed">
+                <strong>For Informational Purposes Only:</strong> The calculations, tax deductions, National Insurance figures, and employer cost estimates generated by the <em>UK Net Pay & Employer Cost</em> calculator are provided strictly as a general guide based on standard 2026/27 HMRC PAYE rates and thresholds. While every effort is made to ensure accuracy, individual circumstances vary and results may differ due to benefits in kind (P11D), salary sacrifice arrangements, cumulative/week-1 month-1 tax code adjustments, statutory payments (SMP/SSP), or mid-year legislative changes.
+            </p>
+            <p class="leading-relaxed">
+                <strong>No Financial or Tax Advice:</strong> Nothing on this website constitutes formal financial, legal, accounting, or tax advice. You should not rely solely on these figures when making employment, hiring, or financial decisions. Always verify payroll liabilities using HMRC-recognised payroll software or consult a qualified UK accountant or chartered tax adviser.
+            </p>
+            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-[11px] text-slate-400">
+                <span>All salary calculations run locally in your browser — no personal salary data is stored or transmitted.</span>
+                <span>© 2026 UK Net Pay & Employer Cost</span>
+            </div>
+        </footer>
+    </main>
+</div>
+
+    <script>
+        // Initialize Lucide icons safely
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Application State
+        const state = {
+            annualGross: 0,
+            activeInputPeriod: 'yearly',
+            viewPeriod: 'monthly',
+            taxYear: '2026-27'
+        };
+
+        // Official HMRC Tax, NI & Student Loan Rules for the Last 4 Tax Years
+        const HMRC_YEARS = {
+            '2026-27': {
+                label: '2026/27',
+                defaultTaxCode: '1257L',
+                standardPA: 12570,
+                paTaperStart: 100000,
+                rUK: { basicWidth: 37700, higherCap: 125140, basicRate: 0.20, higherRate: 0.40, addRate: 0.45 },
+                scotland: [
+                    { limit: 2827, rate: 0.19 },
+                    { limit: 14921, rate: 0.20 },
+                    { limit: 31092, rate: 0.21 },
+                    { limit: 62430, rate: 0.42 },
+                    { limit: 125140, rate: 0.45 },
+                    { limit: Infinity, rate: 0.48 }
+                ],
+                empNIThreshold: 12570,
+                empNIUpperLimit: 50270,
+                empNIMainRate: 0.08,
+                empNIUpperRate: 0.02,
+                empNINote: '8% (£12,570–£50,270) / 2% above',
+                erNIThreshold: 5000,
+                erNIUpperSecondary: 50270,
+                erNIRate: 0.15,
+                erAllowance: 10500,
+                erNINote: '15% above £5,000/yr threshold',
+                pensionLowerQE: 6240,
+                pensionUpperQE: 50270,
+                studentLoans: {
+                    plan1: { threshold: 26900, rate: 0.09, label: 'Plan 1 (£26,900)' },
+                    plan2: { threshold: 29385, rate: 0.09, label: 'Plan 2 (£29,385)' },
+                    plan4: { threshold: 33795, rate: 0.09, label: 'Plan 4 Scotland (£33,795)' },
+                    plan5: { threshold: 25000, rate: 0.09, label: 'Plan 5 (£25,000)' },
+                    postgrad: { threshold: 21000, rate: 0.06 }
+                }
+            },
+            '2025-26': {
+                label: '2025/26',
+                defaultTaxCode: '1257L',
+                standardPA: 12570,
+                paTaperStart: 100000,
+                rUK: { basicWidth: 37700, higherCap: 125140, basicRate: 0.20, higherRate: 0.40, addRate: 0.45 },
+                scotland: [
+                    { limit: 2827, rate: 0.19 },
+                    { limit: 14921, rate: 0.20 },
+                    { limit: 31092, rate: 0.21 },
+                    { limit: 62430, rate: 0.42 },
+                    { limit: 125140, rate: 0.45 },
+                    { limit: Infinity, rate: 0.48 }
+                ],
+                empNIThreshold: 12570,
+                empNIUpperLimit: 50270,
+                empNIMainRate: 0.08,
+                empNIUpperRate: 0.02,
+                empNINote: '8% (£12,570–£50,270) / 2% above',
+                erNIThreshold: 5000,
+                erNIUpperSecondary: 50270,
+                erNIRate: 0.15,
+                erAllowance: 10500,
+                erNINote: '15% above £5,000/yr threshold',
+                pensionLowerQE: 6240,
+                pensionUpperQE: 50270,
+                studentLoans: {
+                    plan1: { threshold: 26065, rate: 0.09, label: 'Plan 1 (£26,065)' },
+                    plan2: { threshold: 28470, rate: 0.09, label: 'Plan 2 (£28,470)' },
+                    plan4: { threshold: 32745, rate: 0.09, label: 'Plan 4 Scotland (£32,745)' },
+                    plan5: { threshold: 25000, rate: 0.09, label: 'Plan 5 (£25,000 – starts Apr 2026)' },
+                    postgrad: { threshold: 21000, rate: 0.06 }
+                }
+            },
+            '2024-25': {
+                label: '2024/25',
+                defaultTaxCode: '1257L',
+                standardPA: 12570,
+                paTaperStart: 100000,
+                rUK: { basicWidth: 37700, higherCap: 125140, basicRate: 0.20, higherRate: 0.40, addRate: 0.45 },
+                scotland: [
+                    { limit: 2306, rate: 0.19 },
+                    { limit: 13991, rate: 0.20 },
+                    { limit: 31092, rate: 0.21 },
+                    { limit: 62430, rate: 0.42 },
+                    { limit: 125140, rate: 0.45 },
+                    { limit: Infinity, rate: 0.48 }
+                ],
+                empNIThreshold: 12570,
+                empNIUpperLimit: 50270,
+                empNIMainRate: 0.08,
+                empNIUpperRate: 0.02,
+                empNINote: '8% (£12,570–£50,270) / 2% above',
+                erNIThreshold: 9100,
+                erNIUpperSecondary: 50270,
+                erNIRate: 0.138,
+                erAllowance: 5000,
+                erNINote: '13.8% above £9,100/yr threshold',
+                pensionLowerQE: 6240,
+                pensionUpperQE: 50270,
+                studentLoans: {
+                    plan1: { threshold: 24990, rate: 0.09, label: 'Plan 1 (£24,990)' },
+                    plan2: { threshold: 27295, rate: 0.09, label: 'Plan 2 (£27,295)' },
+                    plan4: { threshold: 31395, rate: 0.09, label: 'Plan 4 Scotland (£31,395)' },
+                    plan5: { threshold: 25000, rate: 0.09, label: 'Plan 5 (£25,000 – starts Apr 2026)' },
+                    postgrad: { threshold: 21000, rate: 0.06 }
+                }
+            },
+            '2023-24': {
+                label: '2023/24',
+                defaultTaxCode: '1257L',
+                standardPA: 12570,
+                paTaperStart: 100000,
+                rUK: { basicWidth: 37700, higherCap: 125140, basicRate: 0.20, higherRate: 0.40, addRate: 0.45 },
+                scotland: [
+                    { limit: 2162, rate: 0.19 },
+                    { limit: 13118, rate: 0.20 },
+                    { limit: 31092, rate: 0.21 },
+                    { limit: 125140, rate: 0.42 },
+                    { limit: Infinity, rate: 0.47 }
+                ],
+                empNIThreshold: 12570,
+                empNIUpperLimit: 50270,
+                empNIMainRate: 0.115, // Blended full-year rate: 12% Apr–Jan (9m) & 10% Jan–Apr (3m)
+                empNIUpperRate: 0.02,
+                empNINote: '11.5% blended (12% Apr–Jan, 10% Jan–Apr)',
+                erNIThreshold: 9100,
+                erNIUpperSecondary: 50270,
+                erNIRate: 0.138,
+                erAllowance: 5000,
+                erNINote: '13.8% above £9,100/yr threshold',
+                pensionLowerQE: 6240,
+                pensionUpperQE: 50270,
+                studentLoans: {
+                    plan1: { threshold: 22015, rate: 0.09, label: 'Plan 1 (£22,015)' },
+                    plan2: { threshold: 27295, rate: 0.09, label: 'Plan 2 (£27,295)' },
+                    plan4: { threshold: 27660, rate: 0.09, label: 'Plan 4 Scotland (£27,660)' },
+                    plan5: { threshold: 25000, rate: 0.09, label: 'Plan 5 (£25,000 – starts Apr 2026)' },
+                    postgrad: { threshold: 21000, rate: 0.06 }
+                }
+            }
+        };
+
+        // Format currency (£1,234.56)
+        function formatGBP(amount) {
+            const safe = Number.isFinite(amount) ? Math.max(0, amount) : 0;
+            return '£' + safe.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Parse string with commas into a float
+        function parseNumericInput(str) {
+            if (!str) return 0;
+            const cleaned = String(str).replace(/[^0-9.]/g, '');
+            const num = parseFloat(cleaned);
+            return Number.isFinite(num) ? num : 0;
+        }
+
+        // Format calculated numeric value with commas for input boxes
+        function formatInputNumber(num, forceDecimals = false) {
+            if (!Number.isFinite(num) || num <= 0) return '';
+            if (forceDecimals) {
+                return num.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            const hasDecimals = Math.round(num * 100) % 100 !== 0;
+            return num.toLocaleString('en-GB', {
+                minimumFractionDigits: hasDecimals ? 2 : 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Format user input live as they type while preserving trailing decimal points
+        function formatLiveTyping(rawStr) {
+            if (!rawStr) return '';
+            let cleaned = String(rawStr).replace(/[^0-9.]/g, '');
+            const parts = cleaned.split('.');
+            if (parts.length > 2) {
+                cleaned = parts[0] + '.' + parts.slice(1).join('');
+            }
+            const [intPart, decPart] = cleaned.split('.');
+            const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-GB') : '';
+            if (decPart !== undefined) {
+                return `${formattedInt || '0'}.${decPart.slice(0, 2)}`;
+            }
+            return formattedInt;
+        }
+
+        // Parse UK Tax Code into annual Personal Allowance for the active tax year
+        function parsePersonalAllowance(codeRaw, annualGross, yearRules) {
+            const code = (codeRaw || yearRules.defaultTaxCode).trim().toUpperCase();
+            if (code === 'BR') return { pa: 0, flatRate: 0.20, effectivePA: 0 };
+            if (code === 'D0') return { pa: 0, flatRate: 0.40, effectivePA: 0 };
+            if (code === 'D1') return { pa: 0, flatRate: 0.45, effectivePA: 0 };
+            if (code === 'NT') return { pa: 0, flatRate: 0.00, effectivePA: 0 };
+            if (code === '0T') return { pa: 0, flatRate: null, effectivePA: 0 };
+
+            let basePA = yearRules.standardPA;
+            const numMatch = code.match(/^(\d+)/);
+            if (numMatch) {
+                basePA = parseInt(numMatch[1], 10) * 10;
+            }
+            if (code.startsWith('K')) {
+                const kMatch = code.match(/^K(\d+)/);
+                basePA = kMatch ? -(parseInt(kMatch[1], 10) * 10) : 0;
+            }
+
+            if (basePA > 0 && annualGross > yearRules.paTaperStart) {
+                const reduction = Math.floor((annualGross - yearRules.paTaperStart) / 2);
+                basePA = Math.max(0, basePA - reduction);
+            }
+            return { pa: basePA, flatRate: null, effectivePA: basePA };
+        }
+
+        // Calculate annual Income Tax using selected tax year bands
+        function calculateIncomeTax(taxableIncome, region, flatRate, yearRules) {
+            if (taxableIncome <= 0) return 0;
+            if (flatRate !== null) return taxableIncome * flatRate;
+
+            if (region === 'scotland') {
+                const bands = yearRules.scotland;
+                let tax = 0, prev = 0;
+                for (const b of bands) {
+                    if (taxableIncome > prev) {
+                        const slice = Math.min(taxableIncome, b.limit) - prev;
+                        tax += slice * b.rate;
+                        prev = b.limit;
+                    } else break;
+                }
+                return tax;
+            } else {
+                const { basicWidth, higherCap, basicRate, higherRate, addRate } = yearRules.rUK;
+                let tax = 0;
+                if (taxableIncome <= basicWidth) {
+                    tax = taxableIncome * basicRate;
+                } else if (taxableIncome <= higherCap) {
+                    tax = (basicWidth * basicRate) + ((taxableIncome - basicWidth) * higherRate);
+                } else {
+                    tax = (basicWidth * basicRate) + ((higherCap - basicWidth) * higherRate) + ((taxableIncome - higherCap) * addRate);
+                }
+                return tax;
+            }
+        }
+
+        // Calculate annual Employee NI using selected tax year thresholds & rates
+        function calculateEmployeeNI(gross, yearRules) {
+            if (gross <= yearRules.empNIThreshold) return 0;
+            const mainBand = Math.min(gross, yearRules.empNIUpperLimit) - yearRules.empNIThreshold;
+            const upperBand = Math.max(0, gross - yearRules.empNIUpperLimit);
+            return (mainBand * yearRules.empNIMainRate) + (upperBand * yearRules.empNIUpperRate);
+        }
+
+        // Calculate annual Employer NI using selected tax year thresholds & rates
+        function calculateEmployerNI(gross, ruleType, yearRules) {
+            if (ruleType === 'emp_allowance') return 0;
+            if (ruleType === 'young_vet') {
+                return gross > yearRules.erNIUpperSecondary
+                    ? (gross - yearRules.erNIUpperSecondary) * yearRules.erNIRate
+                    : 0;
+            }
+            return gross > yearRules.erNIThreshold
+                ? (gross - yearRules.erNIThreshold) * yearRules.erNIRate
+                : 0;
+        }
+
+        // Sync dropdown labels and default tax code when the user changes tax year
+        function applyTaxYearDefaults(yearKey, resetCodeToDefault = false) {
+            state.taxYear = yearKey;
+            const rules = HMRC_YEARS[yearKey] || HMRC_YEARS['2026-27'];
+
+            const taxCodeEl = document.getElementById('taxCode');
+            if (resetCodeToDefault || !taxCodeEl.value.trim()) {
+                taxCodeEl.value = rules.defaultTaxCode;
+            }
+
+            // Update Student Loan threshold labels for the selected year
+            const slSelect = document.getElementById('studentLoan');
+            ['plan1', 'plan2', 'plan4', 'plan5'].forEach(planKey => {
+                const opt = slSelect.querySelector(`option[value="${planKey}"]`);
+                if (opt && rules.studentLoans[planKey]) {
+                    opt.textContent = rules.studentLoans[planKey].label;
+                }
+            });
+
+            // Update Employer NI rule dropdown labels for the selected year
+            document.getElementById('employerNiRuleLabel').textContent = `Employer NI Rule (${rules.label})`;
+            const erNiSelect = document.getElementById('employerNiType');
+            const stdOpt = erNiSelect.querySelector('option[value="standard"]');
+            const allowOpt = erNiSelect.querySelector('option[value="emp_allowance"]');
+            if (stdOpt) {
+                stdOpt.textContent = `Standard (${(rules.erNIRate * 100).toFixed(1).replace('.0', '')}% above £${rules.erNIThreshold.toLocaleString('en-GB')}/yr)`;
+            }
+            if (allowOpt) {
+                allowOpt.textContent = `Covered by £${rules.erAllowance.toLocaleString('en-GB')} Employment Allowance (£0 NI)`;
+            }
+
+            // Update Header Badge & Results Year Indicators
+            document.getElementById('headerTaxYearBadge').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>${rules.label} HMRC Rates`;
+            document.getElementById('resultsTaxYearPill').textContent = `${rules.label} Tax Year`;
+            document.getElementById('resultsFooterDisclaimer').textContent = `Figures are estimates based on a standard PAYE employee and ${rules.label} HMRC tax & National Insurance thresholds (52 weeks / 12 months per year).`;
+        }
+
+        // Highlight active salary input box
+        function setActiveBoxStyling(period) {
+            state.activeInputPeriod = period;
+            ['weekly', 'monthly', 'yearly'].forEach(p => {
+                const card = document.getElementById(`box-${p}`);
+                const badge = document.getElementById(`badge-${p}`);
+                const label = card.querySelector('label');
+                if (p === period) {
+                    card.className = 'salary-box-card relative p-2.5 sm:p-3 rounded-xl border-2 border-[#2F5D4E] bg-emerald-50/30 transition-all';
+                    badge.classList.remove('hidden');
+                    label.classList.remove('text-slate-600');
+                    label.classList.add('text-[#2F5D4E]');
+                } else {
+                    card.className = 'salary-box-card relative p-2.5 sm:p-3 rounded-xl border border-slate-200 bg-slate-50/50 transition-all';
+                    badge.classList.add('hidden');
+                    label.classList.remove('text-[#2F5D4E]');
+                    label.classList.add('text-slate-600');
+                }
+            });
+        }
+
+        // Sync the results view period tab (Weekly, Monthly, or Yearly)
+        function setViewPeriod(period) {
+            state.viewPeriod = period;
+            document.querySelectorAll('.view-tab').forEach(t => {
+                if (t.dataset.view === period) {
+                    t.classList.add('bg-white', 'text-slate-900', 'shadow-xs');
+                    t.classList.remove('text-slate-600');
+                } else {
+                    t.classList.remove('bg-white', 'text-slate-900', 'shadow-xs');
+                    t.classList.add('text-slate-600');
+                }
+            });
+        }
+
+        // Handle typing in Weekly, Monthly, or Yearly box and immediately sync the other two
+        function handleSalaryInput(sourcePeriod, rawValue) {
+            setActiveBoxStyling(sourcePeriod);
+            setViewPeriod(sourcePeriod);
+
+            const inputW = document.getElementById('inputWeekly');
+            const inputM = document.getElementById('inputMonthly');
+            const inputY = document.getElementById('inputYearly');
+
+            const sourceEl = sourcePeriod === 'weekly' ? inputW : sourcePeriod === 'monthly' ? inputM : inputY;
+            const formattedLive = formatLiveTyping(rawValue);
+            sourceEl.value = formattedLive;
+
+            const numericVal = parseNumericInput(formattedLive);
+
+            if (!formattedLive || numericVal <= 0) {
+                state.annualGross = 0;
+                if (sourcePeriod !== 'weekly') inputW.value = '';
+                if (sourcePeriod !== 'monthly') inputM.value = '';
+                if (sourcePeriod !== 'yearly') inputY.value = '';
+                recalculateAll();
+                return;
+            }
+
+            // Convert entered amount to Annual Gross (52 weeks / 12 months)
+            let annual = 0;
+            if (sourcePeriod === 'weekly') {
+                annual = numericVal * 52;
+            } else if (sourcePeriod === 'monthly') {
+                annual = numericVal * 12;
+            } else {
+                annual = numericVal;
+            }
+            state.annualGross = annual;
+
+            // Populate the other two boxes immediately
+            if (sourcePeriod !== 'weekly') {
+                inputW.value = formatInputNumber(annual / 52, true);
+            }
+            if (sourcePeriod !== 'monthly') {
+                inputM.value = formatInputNumber(annual / 12, true);
+            }
+            if (sourcePeriod !== 'yearly') {
+                inputY.value = formatInputNumber(annual, false);
+            }
+
+            recalculateAll();
+        }
+
+        // Core annual calculation helper (used for base salary and base + bonus marginal comparison)
+        function computeAnnualPayPackage(totalAnnualGross, params, yearRules) {
+            const {
+                taxRegion, taxCode, pensionBasis, empPensionPct, erPensionPct,
+                isPensionSacrifice, extraSacrifice, studentLoanPlan, hasPostgrad, employerNiType
+            } = params;
+
+            let pensionablePay = totalAnnualGross;
+            if (pensionBasis === 'qualifying') {
+                pensionablePay = Math.max(0, Math.min(totalAnnualGross, yearRules.pensionUpperQE) - yearRules.pensionLowerQE);
+            }
+            const empPension = pensionablePay * empPensionPct;
+            const erPension = pensionablePay * erPensionPct;
+
+            // Cap total sacrifice so post-sacrifice pay never drops below £0
+            const maxSacrifice = totalAnnualGross;
+            const actualPensionSacrifice = isPensionSacrifice ? Math.min(empPension, maxSacrifice) : 0;
+            const actualExtraSacrifice = Math.min(extraSacrifice, Math.max(0, maxSacrifice - actualPensionSacrifice));
+            const totalSacrificed = actualPensionSacrifice + actualExtraSacrifice;
+
+            // Contractual pay after salary sacrifice (used for NI, Student Loans & Employer NI)
+            const postSacrificeGross = Math.max(0, totalAnnualGross - totalSacrificed);
+
+            // Taxable pay (if pension is NOT salary sacrifice, Net Pay relief still deducts empPension from taxable pay)
+            const taxableGross = isPensionSacrifice
+                ? postSacrificeGross
+                : Math.max(0, postSacrificeGross - empPension);
+
+            const { pa, flatRate, effectivePA } = parsePersonalAllowance(taxCode, taxableGross, yearRules);
+            const taxableIncome = Math.max(0, taxableGross - pa);
+            const incomeTax = calculateIncomeTax(taxableIncome, taxRegion, flatRate, yearRules);
+
+            const empNI = calculateEmployeeNI(postSacrificeGross, yearRules);
+
+            let studentLoan = 0;
+            if (studentLoanPlan !== 'none' && yearRules.studentLoans[studentLoanPlan]) {
+                if (!(studentLoanPlan === 'plan5' && state.taxYear !== '2026-27')) {
+                    const sl = yearRules.studentLoans[studentLoanPlan];
+                    studentLoan += Math.max(0, postSacrificeGross - sl.threshold) * sl.rate;
+                }
+            }
+            if (hasPostgrad) {
+                const pg = yearRules.studentLoans.postgrad;
+                studentLoan += Math.max(0, postSacrificeGross - pg.threshold) * pg.rate;
+            }
+
+            const totalDeductions = incomeTax + empNI + empPension + actualExtraSacrifice + studentLoan;
+            const netPay = Math.max(0, totalAnnualGross - totalDeductions);
+
+            const erNI = calculateEmployerNI(postSacrificeGross, employerNiType, yearRules);
+            const erOnCosts = erNI + erPension;
+            const totalEmployerCost = totalAnnualGross + erOnCosts;
+
+            return {
+                totalAnnualGross,
+                empPension,
+                actualExtraSacrifice,
+                totalSacrificed,
+                postSacrificeGross,
+                pa,
+                flatRate,
+                effectivePA,
+                incomeTax,
+                empNI,
+                studentLoan,
+                totalDeductions,
+                netPay,
+                erNI,
+                erPension,
+                erOnCosts,
+                totalEmployerCost
+            };
+        }
+
+        // Recalculate and render all outputs
+        function recalculateAll() {
+            const yearRules = HMRC_YEARS[state.taxYear] || HMRC_YEARS['2026-27'];
+            const baseAnnualGross = state.annualGross;
+            const bonusAnnual = parseNumericInput(document.getElementById('inputBonus').value);
+            const combinedAnnualGross = baseAnnualGross + bonusAnnual;
+
+            const params = {
+                taxRegion: document.getElementById('taxRegion').value,
+                taxCode: document.getElementById('taxCode').value,
+                pensionBasis: document.getElementById('pensionBasis').value,
+                empPensionPct: Math.max(0, parseFloat(document.getElementById('empPensionPct').value) || 0) / 100,
+                erPensionPct: Math.max(0, parseFloat(document.getElementById('erPensionPct').value) || 0) / 100,
+                isPensionSacrifice: document.getElementById('pensionSalarySacrifice').checked,
+                extraSacrifice: parseNumericInput(document.getElementById('inputExtraSacrifice').value),
+                studentLoanPlan: document.getElementById('studentLoan').value,
+                hasPostgrad: document.getElementById('postgradLoan').checked,
+                employerNiType: document.getElementById('employerNiType').value
+            };
+
+            const res = computeAnnualPayPackage(combinedAnnualGross, params, yearRules);
+            const employerMarkupPct = combinedAnnualGross > 0 ? ((res.erOnCosts / combinedAnnualGross) * 100) : 0;
+
+            const regionLabel = params.taxRegion === 'scotland' ? 'Scotland' : 'England, Wales & NI';
+            const paDisplay = res.flatRate !== null ? `Flat ${(res.flatRate * 100).toFixed(0)}% code` : `Personal Allowance £${res.effectivePA.toLocaleString('en-GB')}`;
+            const bonusTag = bonusAnnual > 0 ? ` · Incl. £${bonusAnnual.toLocaleString('en-GB')} bonus` : '';
+            document.getElementById('resultsYearSummary').textContent = `Analysis for ${yearRules.label} (${regionLabel}) · ${paDisplay} (${(params.taxCode || yearRules.defaultTaxCode).toUpperCase()})${bonusTag}`;
+
+            const divisor = state.viewPeriod === 'weekly' ? 52 : state.viewPeriod === 'monthly' ? 12 : 1;
+            const periodLabelMap = {
+                weekly: { suffix: 'per week, after deductions', badge: 'Weekly' },
+                monthly: { suffix: 'per month, after deductions', badge: 'Monthly' },
+                yearly: { suffix: 'per year, after deductions', badge: 'Yearly' }
+            };
+
+            document.getElementById('heroTakeHome').textContent = formatGBP(res.netPay / divisor);
+            document.getElementById('heroPeriodLabel').textContent = periodLabelMap[state.viewPeriod].suffix;
+            document.getElementById('heroEmployerCost').textContent = formatGBP(res.totalEmployerCost / divisor);
+            document.getElementById('heroMarkupLabel').textContent = `+${employerMarkupPct.toFixed(1)}% above gross salary`;
+
+            document.getElementById('cardPeriodBadge1').textContent = periodLabelMap[state.viewPeriod].badge;
+            document.getElementById('cardPeriodBadge2').textContent = periodLabelMap[state.viewPeriod].badge;
+
+            document.getElementById('resGrossPay').textContent = formatGBP(combinedAnnualGross / divisor);
+            document.getElementById('resIncomeTax').textContent = `− ${formatGBP(res.incomeTax / divisor)}`;
+            document.getElementById('resEmpNI').textContent = `− ${formatGBP(res.empNI / divisor)}`;
+            document.getElementById('resEmpPension').textContent = `− ${formatGBP(res.empPension / divisor)}`;
+
+            const extraSacRow = document.getElementById('rowExtraSacrifice');
+            if (res.actualExtraSacrifice > 0) {
+                extraSacRow.classList.remove('hidden');
+                document.getElementById('resExtraSacrifice').textContent = `− ${formatGBP(res.actualExtraSacrifice / divisor)}`;
+            } else {
+                extraSacRow.classList.add('hidden');
+            }
+
+            const slRow = document.getElementById('rowStudentLoan');
+            if (res.studentLoan > 0) {
+                slRow.classList.remove('hidden');
+                document.getElementById('resStudentLoan').textContent = `− ${formatGBP(res.studentLoan / divisor)}`;
+            } else {
+                slRow.classList.add('hidden');
+            }
+
+            // Show Salary Sacrifice NI & Student Loan savings callout when active
+            const niSavingsBadge = document.getElementById('niSavingsBadge');
+            if (res.totalSacrificed > 0 && combinedAnnualGross > 0) {
+                const noSacParams = { ...params, isPensionSacrifice: false, extraSacrifice: 0 };
+                const noSacRes = computeAnnualPayPackage(combinedAnnualGross, noSacParams, yearRules);
+                const empSaved = Math.max(0, (noSacRes.empNI + noSacRes.studentLoan) - (res.empNI + res.studentLoan));
+                const erSaved = Math.max(0, noSacRes.erNI - res.erNI);
+                niSavingsBadge.classList.remove('hidden');
+                document.getElementById('empNiSavedVal').textContent = formatGBP(empSaved);
+                document.getElementById('erNiSavedVal').textContent = formatGBP(erSaved);
+            } else {
+                niSavingsBadge.classList.add('hidden');
+            }
+
+            document.getElementById('resTotalDeductions').textContent = `− ${formatGBP(res.totalDeductions / divisor)}`;
+            document.getElementById('resNetPay').textContent = formatGBP(res.netPay / divisor);
+
+            document.getElementById('erGrossPay').textContent = formatGBP(combinedAnnualGross / divisor);
+            document.getElementById('erNI').textContent = `+ ${formatGBP(res.erNI / divisor)}`;
+
+            const erRatePct = (yearRules.erNIRate * 100).toFixed(1).replace('.0', '');
+            if (params.employerNiType === 'emp_allowance') {
+                document.getElementById('erNiRateNote').textContent = `£0 NI (covered by £${yearRules.erAllowance.toLocaleString('en-GB')} Employment Allowance)`;
+            } else {
+                document.getElementById('erNiRateNote').textContent = `${erRatePct}% above applicable threshold`;
+            }
+
+            document.getElementById('erPension').textContent = `+ ${formatGBP(res.erPension / divisor)}`;
+            document.getElementById('erPensionRateNote').textContent = `${(params.erPensionPct * 100).toFixed(1)}% ${params.pensionBasis === 'qualifying' ? 'qualifying earnings' : 'gross salary'}`;
+            document.getElementById('erTotalOnCosts').textContent = `+ ${formatGBP(res.erOnCosts / divisor)}`;
+            document.getElementById('erTotalCost').textContent = formatGBP(res.totalEmployerCost / divisor);
+
+            // Bonus Marginal Breakdown Card
+            const bonusSection = document.getElementById('bonusBreakdownSection');
+            if (bonusAnnual > 0) {
+                const baseRes = computeAnnualPayPackage(baseAnnualGross, params, yearRules);
+                const extraTax = Math.max(0, res.incomeTax - baseRes.incomeTax);
+                const extraNiLoan = Math.max(0, (res.empNI + res.studentLoan + res.empPension) - (baseRes.empNI + baseRes.studentLoan + baseRes.empPension));
+                const netBonus = Math.max(0, res.netPay - baseRes.netPay);
+                const extraErCost = Math.max(0, res.totalEmployerCost - baseRes.totalEmployerCost);
+                const keepPct = (netBonus / bonusAnnual) * 100;
+
+                bonusSection.classList.remove('hidden');
+                document.getElementById('bonusEffectiveKeepBadge').textContent = `You keep ${keepPct.toFixed(1)}% of your bonus`;
+                document.getElementById('bonGross').textContent = formatGBP(bonusAnnual);
+                document.getElementById('bonTax').textContent = `− ${formatGBP(extraTax)}`;
+                document.getElementById('bonNiLoan').textContent = `− ${formatGBP(extraNiLoan)}`;
+                document.getElementById('bonNet').textContent = formatGBP(netBonus);
+                document.getElementById('bonErCost').textContent = formatGBP(extraErCost);
+            } else {
+                bonusSection.classList.add('hidden');
+            }
+
+            document.getElementById('tblGrossW').textContent = formatGBP(combinedAnnualGross / 52);
+            document.getElementById('tblGrossM').textContent = formatGBP(combinedAnnualGross / 12);
+            document.getElementById('tblGrossY').textContent = formatGBP(combinedAnnualGross);
+
+            document.getElementById('tblDedW').textContent = `− ${formatGBP(res.totalDeductions / 52)}`;
+            document.getElementById('tblDedM').textContent = `− ${formatGBP(res.totalDeductions / 12)}`;
+            document.getElementById('tblDedY').textContent = `− ${formatGBP(res.totalDeductions)}`;
+
+            document.getElementById('tblNetW').textContent = formatGBP(res.netPay / 52);
+            document.getElementById('tblNetM').textContent = formatGBP(res.netPay / 12);
+            document.getElementById('tblNetY').textContent = formatGBP(res.netPay);
+
+            document.getElementById('tblErW').textContent = formatGBP(res.totalEmployerCost / 52);
+            document.getElementById('tblErM').textContent = formatGBP(res.totalEmployerCost / 12);
+            document.getElementById('tblErY').textContent = formatGBP(res.totalEmployerCost);
+
+            renderTargetNetTable(params, yearRules);
+        }
+
+        // Solve for exact Required Annual Gross Salary to achieve a desired Annual Net Pay via binary search
+        function solveRequiredGrossForTargetNet(targetAnnualNet, params, yearRules) {
+            if (targetAnnualNet <= 0) return 0;
+            let low = targetAnnualNet;
+            let high = Math.max(targetAnnualNet * 2.5, 500000);
+
+            // Expand upper bound if high pension/sacrifice requires higher gross
+            while (computeAnnualPayPackage(high, params, yearRules).netPay < targetAnnualNet && high < 20000000) {
+                high *= 2;
+            }
+
+            // 50 iterations achieves sub-penny accuracy (< £0.0001)
+            for (let i = 0; i < 50; i++) {
+                const mid = (low + high) / 2;
+                const pkg = computeAnnualPayPackage(mid, params, yearRules);
+                if (pkg.netPay < targetAnnualNet) {
+                    low = mid;
+                } else {
+                    high = mid;
+                }
+            }
+            return (low + high) / 2;
+        }
+
+        // Render the Reverse Lookup Table (Custom target row + standard monthly take-home benchmarks)
+        function renderTargetNetTable(params, yearRules) {
+            const tbody = document.getElementById('targetNetTableBody');
+            if (!tbody) return;
+
+            const customVal = parseNumericInput(document.getElementById('customTargetNetInput').value);
+            const customPeriod = document.getElementById('customTargetNetPeriod').value;
+            const rows = [];
+
+            if (customVal > 0) {
+                const customAnnualNet = customPeriod === 'weekly' ? customVal * 52 : customPeriod === 'monthly' ? customVal * 12 : customVal;
+                rows.push({ annualNet: customAnnualNet, isCustom: true });
+            }
+
+            // Standard monthly take-home benchmarks (£1,500/mo to £6,000/mo)
+            const monthlyBenchmarks = [1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000];
+            monthlyBenchmarks.forEach(m => {
+                rows.push({ annualNet: m * 12, isCustom: false });
+            });
+
+            tbody.innerHTML = rows.map(row => {
+                const reqGross = solveRequiredGrossForTargetNet(row.annualNet, params, yearRules);
+                const pkg = computeAnnualPayPackage(reqGross, params, yearRules);
+                const rowClass = row.isCustom
+                    ? 'bg-amber-50/60 font-semibold'
+                    : 'hover:bg-slate-50/90 transition';
+                const customTag = row.isCustom
+                    ? '<span class="ml-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase rounded bg-amber-500 text-white">Your Target</span>'
+                    : '';
+
+                return `
+                    <tr class="${rowClass}">
+                        <td class="py-2 pl-3 text-slate-600">${formatGBP(row.annualNet / 52)}</td>
+                        <td class="py-2 text-slate-800 font-medium">${formatGBP(row.annualNet / 12)}${customTag}</td>
+                        <td class="py-2 text-slate-600">${formatGBP(row.annualNet)}</td>
+                        <td class="py-2 text-right font-display font-bold text-[#2F5D4E]">${formatGBP(reqGross)}</td>
+                        <td class="py-2 text-right text-slate-700">${formatGBP(pkg.totalEmployerCost)}</td>
+                        <td class="py-2 pr-3 text-right">
+                            <button type="button" data-apply-gross="${reqGross.toFixed(2)}"
+                                class="apply-gross-btn px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 hover:bg-[#2F5D4E] text-[#2F5D4E] hover:text-white border border-emerald-200 transition">
+                                Use Gross
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Wire up "Use Gross" buttons to load that exact gross salary into the main calculator
+            tbody.querySelectorAll('.apply-gross-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const grossVal = parseFloat(btn.dataset.applyGross);
+                    if (grossVal > 0) {
+                        handleSalaryInput('yearly', grossVal.toFixed(2));
+                        document.getElementById('appScrollWrapper').scrollTo({ top: 0, behavior: 'smooth' });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        // Attach Input Listeners for Weekly, Monthly, and Yearly
+        const inputWeeklyEl = document.getElementById('inputWeekly');
+        const inputMonthlyEl = document.getElementById('inputMonthly');
+        const inputYearlyEl = document.getElementById('inputYearly');
+
+        inputWeeklyEl.addEventListener('focus', () => {
+            setActiveBoxStyling('weekly');
+            setViewPeriod('weekly');
+            recalculateAll();
+        });
+        inputMonthlyEl.addEventListener('focus', () => {
+            setActiveBoxStyling('monthly');
+            setViewPeriod('monthly');
+            recalculateAll();
+        });
+        inputYearlyEl.addEventListener('focus', () => {
+            setActiveBoxStyling('yearly');
+            setViewPeriod('yearly');
+            recalculateAll();
+        });
+
+        inputWeeklyEl.addEventListener('input', (e) => handleSalaryInput('weekly', e.target.value));
+        inputMonthlyEl.addEventListener('input', (e) => handleSalaryInput('monthly', e.target.value));
+        inputYearlyEl.addEventListener('input', (e) => handleSalaryInput('yearly', e.target.value));
+
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const yearlyVal = parseFloat(btn.dataset.preset);
+                handleSalaryInput('yearly', String(yearlyVal));
+            });
+        });
+
+        // Clear all button
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            state.annualGross = 0;
+            inputWeeklyEl.value = '';
+            inputMonthlyEl.value = '';
+            inputYearlyEl.value = '';
+            document.getElementById('inputExtraSacrifice').value = '';
+            document.getElementById('inputBonus').value = '';
+            document.getElementById('pensionSalarySacrifice').checked = false;
+            setActiveBoxStyling('yearly');
+            setViewPeriod('monthly');
+            recalculateAll();
+        });
+
+        // View Period Tabs
+        document.querySelectorAll('.view-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                setViewPeriod(tab.dataset.view);
+                recalculateAll();
+            });
+        });
+
+        // Tax year selector listener (resets default allowance code for that year & recalculates)
+        document.getElementById('taxYear').addEventListener('change', (e) => {
+            applyTaxYearDefaults(e.target.value, true);
+            recalculateAll();
+        });
+
+        // Listeners for tax/pension controls
+        ['taxRegion', 'taxCode', 'pensionBasis', 'empPensionPct', 'erPensionPct', 'pensionSalarySacrifice', 'studentLoan', 'postgradLoan', 'employerNiType'].forEach(id => {
+            document.getElementById(id).addEventListener('input', recalculateAll);
+            document.getElementById(id).addEventListener('change', recalculateAll);
+        });
+
+        // Live comma-formatting & recalculation for Other Salary Sacrifice and Annual Bonus
+        ['inputExtraSacrifice', 'inputBonus'].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', (e) => {
+                e.target.value = formatLiveTyping(e.target.value);
+                recalculateAll();
+            });
+        });
+
+        // Custom Target Take-Home Pay input & period selector listeners
+        const customTargetInputEl = document.getElementById('customTargetNetInput');
+        if (customTargetInputEl) {
+            customTargetInputEl.addEventListener('input', (e) => {
+                e.target.value = formatLiveTyping(e.target.value);
+                recalculateAll();
+            });
+            document.getElementById('customTargetNetPeriod').addEventListener('change', recalculateAll);
+        }
+
+        // Initial render with default 2026/27 year rules and blank salary boxes
+        applyTaxYearDefaults('2026-27', true);
+        recalculateAll();
+    </script>
+</body>
+</html>
